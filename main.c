@@ -52,26 +52,29 @@ int main(int argc, char *argv[]) {
 
   read_file(list, arquivo, lines); // LER ARQUIVO
 
-  // printMatriz(list);
+  printList(list);
 
   int pesoTotal = primAlgoritmo(list, menorCaminho);
 
   printMenorCaminho(menorCaminho);
-  printf("Peso Total: %d", pesoTotal);
+  printf("Peso Total: %d\n", pesoTotal);
   /*DESALOCO TODO ARRAY E SEUS ALEMENTOS*/
   list_clear_vector(list, lines);
   return 0;
 }
 
+/*------------------------------------------------------------*/
 void printMenorCaminho(int *caminho) {
   int i;
-  for (i = 1; i <= lines; i++) {
+  printf("\n---ARVORE GERADORA MINIMA CRIADA---\n");
+  for (i = 0; i < lines; i++) {
     printf("%d - ", caminho[i]);
     printCidade(caminho[i]);
     printf("\n");
   }
 }
 
+/*------------------------------------------------------------*/
 void escolherCidadeInicial(List *list, int *menorCaminho) {
   int opcao;
 
@@ -82,6 +85,7 @@ void escolherCidadeInicial(List *list, int *menorCaminho) {
 
   menorCaminho[0] = opcao;
 }
+
 /*------------------------------------------------------------*/
 long int contar_linhas(char *file_name) {
   FILE *fl = fopen(file_name, "r"); // ABRIR ARQUIVO PARA LEITURA
@@ -264,16 +268,22 @@ int verificarCidadesVisitadas(int cidadeCandidata, int *cidades, int qntd) {
 // RETORNA A CIDADE MAIS PERTA E
 // QUE NAO FOI VISITADA AINDA DO NO
 int buscarMenorCaminho(Node *no, int *cidades, int qntd, int *distPercorrida) {
-  int cidadeProxima = 9999;
+  int cidadeProxima;
+  *distPercorrida = 9999;
 
-  for (; node_empty(no); no = node_next(no)) {
-    if (get_distancia(no) < cidadeProxima) {
+  while (!node_empty(no)) {
+    // printf("\n%d %d", get_id(no), get_distancia(no));
+    if (get_distancia(no) < *distPercorrida) {
+      // printf("\nverificar cidade %d", get_id(no));
       if (verificarCidadesVisitadas(get_id(no), cidades,
                                     qntd)) { // CIDADE NAO FOI SELECIONADA
+        // printf("\ncidade nao foi visitada %d - %d", get_id(no),
+        //        get_distancia(no));
         cidadeProxima = get_id(no);
         *distPercorrida = get_distancia(no);
       }
     }
+    no = node_next(no);
   }
   return cidadeProxima;
 }
@@ -282,21 +292,22 @@ int buscarMenorCaminho(Node *no, int *cidades, int qntd, int *distPercorrida) {
 int buscarCidadeProxima(List *list, int *cidades, int qntd,
                         int *distPercorrida) {
   int i;
-  int distCandidata;
-  int proximaCidade =
-      buscarMenorCaminho(list[0].first, cidades, qntd, &distCandidata);
+  int distCandidata, proximaCidade;
+  int menorDistancia = 9999;
 
-  for (i = 1; i < qntd; i++) {
-    int atual = cidades[i];
+  for (i = 0; i < qntd; i++) {
+    int atual = cidades[i] - 1;
     int cidadeCandidata =
         buscarMenorCaminho(list[atual].first, cidades, qntd, &distCandidata);
 
-    if (cidadeCandidata < proximaCidade) {
+    if (distCandidata < menorDistancia) {
       proximaCidade = cidadeCandidata;
       *distPercorrida = distCandidata;
+      menorDistancia = distCandidata;
     }
   }
-  printf("Cidade: %d", proximaCidade);
+  // printf("\nCidade ESCOLHIDA: %d - ", proximaCidade);
+  // printCidade(proximaCidade);
   return proximaCidade;
 }
 
@@ -307,7 +318,6 @@ int primAlgoritmo(List *list, int *menorCaminho) {
   int distanciaPercorrida, distanciaTotal = 0;
 
   for (; cidsPercorridas < lines; cidsPercorridas++) {
-    printf("Entrou\n");
     int cidade = buscarCidadeProxima(list, menorCaminho, cidsPercorridas,
                                      &distanciaPercorrida);
     menorCaminho[cidsPercorridas] = cidade;
